@@ -1,0 +1,6 @@
+{
+  "name": "Quedamos - Citas & Planes Reales",
+  "description": "App de citas para conocer gente y quedar en persona: un buen café de especialidad, salir a comer o compartir actividades emocionantes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
