@@ -7,11 +7,14 @@ import { PlansBoardSection } from './components/PlansBoardSection';
 import { DatesAgendaSection } from './components/DatesAgendaSection';
 import { ChatAndDatesSection } from './components/ChatAndDatesSection';
 import { ProfileSection } from './components/ProfileSection';
+import { SocialNetworkSection } from './components/SocialNetworkSection';
 import { DateProposalModal } from './components/DateProposalModal';
 import { NewPlanModal } from './components/NewPlanModal';
 import { MatchModal } from './components/MatchModal';
 import { RegistrationModal } from './components/RegistrationModal';
 import { CompatibilityModal } from './components/CompatibilityModal';
+import { ContactPlanModal } from './components/ContactPlanModal';
+import { AddContactModal } from './components/AddContactModal';
 import { Check, Heart } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
@@ -26,6 +29,7 @@ const MainAppContent: React.FC = () => {
       <main className="flex-1 pb-20 md:pb-12">
         {activeTab === 'descubrir' && <DiscoverySection />}
         {activeTab === 'tablon' && <PlansBoardSection />}
+        {activeTab === 'red' && <SocialNetworkSection />}
         {activeTab === 'citas' && <DatesAgendaSection />}
         {activeTab === 'mensajes' && <ChatAndDatesSection />}
         {activeTab === 'perfil' && <ProfileSection />}
@@ -47,6 +51,8 @@ const MainAppContent: React.FC = () => {
       <MatchModal />
       <RegistrationModal />
       <CompatibilityModal />
+      <ContactPlanModal />
+      <AddContactModal />
 
       {/* Mobile Sticky Thumb Navigation */}
       <MobileBottomNav />

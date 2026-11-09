@@ -144,4 +144,62 @@ export interface Conversation {
   groupParticipants?: GroupParticipant[];
 }
 
-export type ActiveTab = 'descubrir' | 'tablon' | 'citas' | 'mensajes' | 'perfil';
+export type ActiveTab = 'descubrir' | 'tablon' | 'red' | 'citas' | 'mensajes' | 'perfil';
+
+export type ContactCircle = 'amigos' | 'trabajo' | 'familia' | 'citas' | 'aficiones';
+
+export interface UserContact {
+  id: string;
+  name: string;
+  avatar: string;
+  phone?: string;
+  email?: string;
+  circle: ContactCircle;
+  status: 'disponible' | 'en_plan' | 'ocupado' | 'libre_fin_de_semana';
+  statusMessage?: string;
+  city: string;
+  neighborhood?: string;
+  favoritePillar: PlanCategory;
+  favoriteSpot?: string;
+  hobbies?: string[];
+  isCloseFriend?: boolean;
+  connectedSince: string;
+}
+
+export interface SocialCircle {
+  id: string;
+  name: string;
+  description: string;
+  category: PlanCategory | 'mixto';
+  memberCount: number;
+  memberIds: string[];
+}
+
+export interface SocialPost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  authorCircle: ContactCircle | 'mixto';
+  createdAt: string;
+  content: string;
+  image?: string;
+  planCategory?: PlanCategory;
+  planDetails?: {
+    title: string;
+    spot: string;
+    datetime: string;
+    isGroup: boolean;
+    maxParticipants?: number;
+    attendees: { id: string; name: string; avatar: string }[];
+  };
+  likes: number;
+  hasLiked?: boolean;
+  comments: {
+    id: string;
+    authorName: string;
+    authorAvatar: string;
+    text: string;
+    time: string;
+  }[];
+}

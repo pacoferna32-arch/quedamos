@@ -10,6 +10,7 @@ export const Header: React.FC = () => {
     openRegistrationModal,
     allDates,
     conversations,
+    contacts,
     theme,
     toggleTheme
   } = useApp();
@@ -32,7 +33,7 @@ export const Header: React.FC = () => {
         </button>
 
         {/* Zone 2: 4-5 clean single-line text navigation links */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-600 dark:text-stone-400">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-stone-600 dark:text-stone-400">
           <button
             onClick={() => setActiveTab('descubrir')}
             className={`whitespace-nowrap shrink-0 pb-1 border-b-2 transition-colors cursor-pointer ${
@@ -53,6 +54,20 @@ export const Header: React.FC = () => {
             }`}
           >
             Tablón de Planes
+          </button>
+
+          <button
+            onClick={() => setActiveTab('red')}
+            className={`whitespace-nowrap shrink-0 pb-1 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'red'
+                ? 'text-stone-950 dark:text-stone-100 border-stone-900 dark:border-amber-400 font-semibold'
+                : 'border-transparent hover:text-stone-900 dark:hover:text-stone-200 hover:border-stone-300 dark:hover:border-stone-700'
+            }`}
+          >
+            <span>Mi Red</span>
+            <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 font-mono">
+              ({contacts.length})
+            </span>
           </button>
 
           <button

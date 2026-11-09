@@ -1,4 +1,4 @@
-import { UserProfile, DatePlanProposal, Conversation } from '../types';
+import { UserProfile, DatePlanProposal, Conversation, UserContact, SocialCircle, SocialPost } from '../types';
 
 export const CURRENT_USER: UserProfile = {
   id: 'me',
@@ -995,3 +995,300 @@ export const CATEGORY_METADATA = {
     badgeBg: 'bg-emerald-50 text-emerald-900 border-emerald-200'
   }
 };
+
+export const INITIAL_CONTACTS: UserContact[] = [
+  {
+    id: 'contact_pablo',
+    name: 'Pablo Ruiz',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
+    phone: '+34 612 345 678',
+    email: 'pablo.ruiz@gmail.com',
+    circle: 'amigos',
+    status: 'disponible',
+    statusMessage: '¡Disponible para un café hoy!',
+    city: 'Madrid',
+    neighborhood: 'Malasaña',
+    favoritePillar: 'cafe',
+    favoriteSpot: 'Toma Café',
+    hobbies: ['Fotografía', 'Café de especialidad', 'Música indie'],
+    isCloseFriend: true,
+    connectedSince: 'Hace 3 meses'
+  },
+  {
+    id: 'contact_sara',
+    name: 'Sara Gil',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
+    phone: '+34 623 456 789',
+    email: 'sara.gil@gmail.com',
+    circle: 'amigos',
+    status: 'libre_fin_de_semana',
+    statusMessage: 'Libre este finde para ruta de tapeo',
+    city: 'Madrid',
+    neighborhood: 'La Latina',
+    favoritePillar: 'comer',
+    favoriteSpot: 'La Ardosa & Taberna Laredo',
+    hobbies: ['Gastronomía', 'Vinos', 'Viajar'],
+    isCloseFriend: true,
+    connectedSince: 'Hace 6 meses'
+  },
+  {
+    id: 'contact_diego',
+    name: 'Diego Márquez',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+    phone: '+34 634 567 890',
+    email: 'diego.marquez@gmail.com',
+    circle: 'aficiones',
+    status: 'disponible',
+    statusMessage: 'Buscando 2 personas para pádel / escalada',
+    city: 'Madrid',
+    neighborhood: 'Chamberí',
+    favoritePillar: 'actividad',
+    favoriteSpot: 'Sputnik Climbing',
+    hobbies: ['Hacer Deporte', 'Escalada', 'Pádel', 'Bicicleta'],
+    isCloseFriend: false,
+    connectedSince: 'Hace 1 mes'
+  },
+  {
+    id: 'contact_claudia',
+    name: 'Claudia Méndez',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+    phone: '+34 645 678 901',
+    email: 'claudia.mendez@empresa.com',
+    circle: 'trabajo',
+    status: 'ocupado',
+    statusMessage: 'En la oficina, pausa de café a las 17:00',
+    city: 'Madrid',
+    neighborhood: 'Salamanca',
+    favoritePillar: 'cafe',
+    favoriteSpot: 'Acid Bakehouse',
+    hobbies: ['Diseño', 'Arquitectura', 'El Cine'],
+    isCloseFriend: false,
+    connectedSince: 'Hace 4 meses'
+  },
+  {
+    id: 'contact_mateo',
+    name: 'Mateo Silva',
+    avatar: '/src/assets/images/avatar_mateo_1794149698903.jpg',
+    phone: '+34 656 789 012',
+    email: 'mateo.silva@gmail.com',
+    circle: 'amigos',
+    status: 'en_plan',
+    statusMessage: 'Afterwork de cañas en Plaza Olavide',
+    city: 'Madrid',
+    neighborhood: 'Chamberí',
+    favoritePillar: 'comer',
+    favoriteSpot: 'Plaza de Olavide',
+    hobbies: ['Escalada', 'Fotografía urbana', 'Gastronomía'],
+    isCloseFriend: true,
+    connectedSince: 'Hace 1 año'
+  },
+  {
+    id: 'contact_lucia',
+    name: 'Lucía Romero',
+    avatar: '/src/assets/images/avatar_lucia_1794149698456.jpg',
+    phone: '+34 667 890 123',
+    email: 'lucia.romero@gmail.com',
+    circle: 'citas',
+    status: 'disponible',
+    statusMessage: 'Ganas de brunch y café con tarta',
+    city: 'Madrid',
+    neighborhood: 'Malasaña',
+    favoritePillar: 'cafe',
+    favoriteSpot: 'Misión Café',
+    hobbies: ['Cerámica', 'Librerías de viejo', 'Café especialidad'],
+    isCloseFriend: false,
+    connectedSince: 'Hace 2 semanas'
+  },
+  {
+    id: 'contact_marina',
+    name: 'Marina Santos',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
+    phone: '+34 678 901 234',
+    email: 'marina.santos@gmail.com',
+    circle: 'familia',
+    status: 'libre_fin_de_semana',
+    statusMessage: 'Comida familiar de domingo',
+    city: 'Madrid',
+    neighborhood: 'Retiro',
+    favoritePillar: 'comer',
+    favoriteSpot: 'Casa Lucio',
+    hobbies: ['Cocinar', 'Lectura', 'Teatro'],
+    isCloseFriend: false,
+    connectedSince: 'Hace 2 años'
+  },
+  {
+    id: 'contact_javi',
+    name: 'Javi Torres',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80',
+    phone: '+34 689 012 345',
+    email: 'javi.torres@gmail.com',
+    circle: 'aficiones',
+    status: 'disponible',
+    statusMessage: 'Ruta en bici por la sierra el sábado',
+    city: 'Madrid',
+    neighborhood: 'Moncloa',
+    favoritePillar: 'actividad',
+    favoriteSpot: 'Casa de Campo / Sierra de Guadarrama',
+    hobbies: ['Ciclismo', 'Naturaleza', 'Tecnología'],
+    isCloseFriend: false,
+    connectedSince: 'Hace 2 meses'
+  }
+];
+
+export const INITIAL_SOCIAL_CIRCLES: SocialCircle[] = [
+  {
+    id: 'circle_cafe',
+    name: '☕ Club del Café & Brunch',
+    description: 'Amigos apasionados del café de especialidad, tertulias y probar cafeterías de autor los sábados.',
+    category: 'cafe',
+    memberCount: 5,
+    memberIds: ['contact_pablo', 'contact_claudia', 'contact_lucia', 'me', 'contact_sara']
+  },
+  {
+    id: 'circle_foodies',
+    name: '🍷 Gastro, Vinos & Raciones',
+    description: 'Quedadas para descubrir nuevos restaurantes, rutas de tapas por La Latina y cenas ricas.',
+    category: 'comer',
+    memberCount: 6,
+    memberIds: ['contact_sara', 'contact_mateo', 'contact_marina', 'contact_pablo', 'me', 'contact_diego']
+  },
+  {
+    id: 'circle_sport',
+    name: '🎾 Pádel, Boulder & Sierra',
+    description: 'Para organizar partidos 2v2 de pádel, sesiones de rocódromo y escapadas con caña final.',
+    category: 'actividad',
+    memberCount: 4,
+    memberIds: ['contact_diego', 'contact_javi', 'contact_mateo', 'me']
+  },
+  {
+    id: 'circle_afterwork',
+    name: '💼 Compañeros & Afterwork',
+    description: 'Desconexión entre semana para tomar algo y charlar sin hablar de trabajo.',
+    category: 'mixto',
+    memberCount: 4,
+    memberIds: ['contact_claudia', 'contact_mateo', 'contact_pablo', 'me']
+  }
+];
+
+export const INITIAL_SOCIAL_POSTS: SocialPost[] = [
+  {
+    id: 'post_1',
+    authorId: 'contact_pablo',
+    authorName: 'Pablo Ruiz',
+    authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
+    authorCircle: 'amigos',
+    createdAt: 'Hace 25 min',
+    content: '¿Alguien por Malasaña o Chueca para tomar un flat white y despejarse un rato? Estoy por La Bicicleta con el portátil.',
+    planCategory: 'cafe',
+    planDetails: {
+      title: 'Café de especialidad & desconexión',
+      spot: 'La Bicicleta Café (Plaza San Ildefonso)',
+      datetime: 'Hoy a las 18:00',
+      isGroup: false,
+      attendees: [
+        {
+          id: 'contact_pablo',
+          name: 'Pablo Ruiz',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80'
+        }
+      ]
+    },
+    likes: 4,
+    hasLiked: false,
+    comments: [
+      {
+        id: 'c1',
+        authorName: 'Claudia Méndez',
+        authorAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+        text: '¡Salgo en 20 minutos de la oficina! Si seguís allí me paso ☕',
+        time: 'Hace 10 min'
+      }
+    ]
+  },
+  {
+    id: 'post_2',
+    authorId: 'contact_diego',
+    authorName: 'Diego Márquez',
+    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+    authorCircle: 'aficiones',
+    createdAt: 'Hace 2 horas',
+    content: '¡Buenas gente! Tenemos pista de pádel reservada para este jueves a las 19:30 + cañas posteriores. ¡Nos faltan 2 personas para el partido 2v2! ¿Quién se anima?',
+    planCategory: 'actividad',
+    planDetails: {
+      title: 'Partido Pádel 2v2 + Cañas de tercer tiempo',
+      spot: 'Club de Pádel Canal (Chamberí)',
+      datetime: 'Jueves 12 Nov, 19:30',
+      isGroup: true,
+      maxParticipants: 4,
+      attendees: [
+        {
+          id: 'contact_diego',
+          name: 'Diego Márquez',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 'contact_javi',
+          name: 'Javi Torres',
+          avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80'
+        }
+      ]
+    },
+    likes: 6,
+    hasLiked: true,
+    comments: [
+      {
+        id: 'c2',
+        authorName: 'Mateo Silva',
+        authorAvatar: '/src/assets/images/avatar_mateo_1794149698903.jpg',
+        text: '¡Me apunto de cabeza! Llevo tiempo sin jugar.',
+        time: 'Hace 1 hora'
+      }
+    ]
+  },
+  {
+    id: 'post_3',
+    authorId: 'contact_sara',
+    authorName: 'Sara Gil',
+    authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
+    authorCircle: 'amigos',
+    createdAt: 'Hace 4 horas',
+    content: 'Ruta de tapas y vinos por La Latina este viernes a partir de las 20:30. Mesa reservada en Taberna Laredo. Plan en grupo abierto para amigos, ¡apuntaros!',
+    image: '/src/assets/images/date_food_1794149700596.jpg',
+    planCategory: 'comer',
+    planDetails: {
+      title: 'Tapeo de autor & vinos en La Latina',
+      spot: 'Taberna Laredo (Mesa reservada)',
+      datetime: 'Viernes 13 Nov, 20:30',
+      isGroup: true,
+      maxParticipants: 6,
+      attendees: [
+        {
+          id: 'contact_sara',
+          name: 'Sara Gil',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 'contact_mateo',
+          name: 'Mateo Silva',
+          avatar: '/src/assets/images/avatar_mateo_1794149698903.jpg'
+        },
+        {
+          id: 'contact_pablo',
+          name: 'Pablo Ruiz',
+          avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80'
+        }
+      ]
+    },
+    likes: 12,
+    hasLiked: false,
+    comments: [
+      {
+        id: 'c3',
+        authorName: 'Lucía Romero',
+        authorAvatar: '/src/assets/images/avatar_lucia_1794149698456.jpg',
+        text: '¡Qué buen sitio! Me paso sobre las 21:00.',
+        time: 'Hace 2 horas'
+      }
+    ]
+  }
+];

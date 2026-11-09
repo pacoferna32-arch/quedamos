@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Compass, Flame, CalendarHeart, MessageCircle, User } from 'lucide-react';
+import { Compass, Flame, CalendarHeart, MessageCircle, User, Users } from 'lucide-react';
 import { ActiveTab } from '../types';
 
 export const MobileBottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, allDates, conversations } = useApp();
+  const { activeTab, setActiveTab, allDates, conversations, contacts } = useApp();
 
   const unreadCount = conversations.reduce((acc, c) => acc + c.unreadCount, 0);
   const activeDatesCount = allDates.filter(d => d.status === 'accepted' || d.status === 'pending').length;
@@ -12,14 +12,15 @@ export const MobileBottomNav: React.FC = () => {
   const tabs: { id: ActiveTab; label: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'descubrir', label: 'Descubrir', icon: Flame },
     { id: 'tablon', label: 'Planes', icon: Compass },
-    { id: 'citas', label: 'Mis Citas', icon: CalendarHeart },
+    { id: 'red', label: 'Mi Red', icon: Users },
+    { id: 'citas', label: 'Citas', icon: CalendarHeart },
     { id: 'mensajes', label: 'Mensajes', icon: MessageCircle },
     { id: 'perfil', label: 'Perfil', icon: User }
   ];
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#161412]/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 transition-colors duration-200">
-      <div className="grid grid-cols-5 items-center h-16 max-w-lg mx-auto">
+      <div className="grid grid-cols-6 items-center h-16 max-w-lg mx-auto">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

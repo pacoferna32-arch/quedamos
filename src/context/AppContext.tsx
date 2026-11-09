@@ -7,13 +7,20 @@ import {
   DateInvitation,
   ActiveTab,
   PlanCategory,
-  ChatMessage
+  ChatMessage,
+  UserContact,
+  SocialCircle,
+  SocialPost,
+  ContactCircle
 } from '../types';
 import {
   CURRENT_USER,
   MOCK_PROFILES,
   MOCK_PUBLIC_PLANS,
-  INITIAL_CONVERSATIONS
+  INITIAL_CONVERSATIONS,
+  INITIAL_CONTACTS,
+  INITIAL_SOCIAL_CIRCLES,
+  INITIAL_SOCIAL_POSTS
 } from '../data/mockData';
 import { rankProfilesByCompatibility } from '../utils/matchingAlgorithm';
 
@@ -39,6 +46,34 @@ interface AppContextType {
   sendDateInvitation: (invitation: Omit<DateInvitation, 'id' | 'fromUserId' | 'createdAt' | 'status'>) => void;
   respondToDateInvitation: (conversationId: string, invitationId: string, response: 'accepted' | 'declined') => void;
   allDates: DateInvitation[];
+  // Social Network & Contacts
+  contacts: UserContact[];
+  addContact: (contact: Omit<UserContact, 'id' | 'connectedSince'>) => void;
+  importPhoneContacts: () => void;
+  socialPosts: SocialPost[];
+  createSocialPost: (content: string, planCategory?: PlanCategory, planTitle?: string, spotName?: string, dateTime?: string, isGroup?: boolean) => void;
+  likeSocialPost: (postId: string) => void;
+  addPostComment: (postId: string, text: string) => void;
+  joinPostPlan: (postId: string) => void;
+  circles: SocialCircle[];
+  createSocialCircle: (name: string, description: string, category: PlanCategory | 'mixto', memberIds: string[]) => void;
+  isContactPlanModalOpen: boolean;
+  contactPlanTarget: UserContact | null;
+  isContactPlanGroupMode: boolean;
+  openContactPlanModal: (target?: UserContact | null, groupMode?: boolean) => void;
+  closeContactPlanModal: () => void;
+  handleCreateContactPlan: (data: {
+    targetContactIds: string[];
+    category: PlanCategory;
+    title: string;
+    spotName: string;
+    dateTime: string;
+    note: string;
+    isGroup: boolean;
+    splitOption: string;
+  }) => void;
+  isAddContactModalOpen: boolean;
+  setIsAddContactModalOpen: (open: boolean) => void;
   // Modals state
   proposalModalTarget: { profile: UserProfile; category?: PlanCategory } | null;
   openProposalModal: (profile: UserProfile, category?: PlanCategory) => void;
@@ -134,6 +169,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [selectedCompatibilityTarget, setSelectedCompatibilityTarget] = useState<UserProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+
+  // Social Network & Contacts State
+  const [contacts, setContacts] = useState<UserContact[]>(() => {
+    try {
+      const saved = localStorage.getItem('quedamos_contacts');
+      return saved ? JSON.parse(saved) : INITIAL_CONTACTS;
+    } catch {
+      return INITIAL_CONTACTS;
+    }
+  });
+
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>(() => {
+    try {
+      const saved = localStorage.getItem('quedamos_social_posts');
+      return saved ? JSON.parse(saved) : INITIAL_SOCIAL_POSTS;
+    } catch {
+      return INITIAL_SOCIAL_POSTS;
+    }
+  });
+
+  const [circles, setCircles] = useState<SocialCircle[]>(() => {
+    try {
+      const saved = localStorage.getItem('quedamos_social_circles');
+      return saved ? JSON.parse(saved) : INITIAL_SOCIAL_CIRCLES;
+    } catch {
+      return INITIAL_SOCIAL_CIRCLES;
+    }
+  });
+
+  const [isContactPlanModalOpen, setIsContactPlanModalOpen] = useState(false);
+  const [contactPlanTarget, setContactPlanTarget] = useState<UserContact | null>(null);
+  const [isContactPlanGroupMode, setIsContactPlanGroupMode] = useState(false);
+  const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quedamos_contacts', JSON.stringify(contacts));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  }, [contacts]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quedamos_social_posts', JSON.stringify(socialPosts));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  }, [socialPosts]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quedamos_social_circles', JSON.stringify(circles));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  }, [circles]);
 
   // Theme state with system preference & localStorage
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
@@ -884,6 +976,550 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showNotification('Has cerrado sesión. Puedes registrarte o volver a iniciar sesión cuando quieras.');
   };
 
+  // Social Network & Contact Plan Handlers
+  const openContactPlanModal = (target?: UserContact | null, groupMode = false) => {
+    setContactPlanTarget(target || null);
+    setIsContactPlanGroupMode(groupMode);
+    setIsContactPlanModalOpen(true);
+  };
+
+  const closeContactPlanModal = () => {
+    setIsContactPlanModalOpen(false);
+    setContactPlanTarget(null);
+  };
+
+  const addContact = (contactData: Omit<UserContact, 'id' | 'connectedSince'>) => {
+    const newContact: UserContact = {
+      ...contactData,
+      id: `contact_${Date.now()}`,
+      connectedSince: 'Recién añadido'
+    };
+    setContacts(prev => [newContact, ...prev]);
+    showNotification(`¡${contactData.name} añadido a tus contactos (${contactData.circle})!`);
+  };
+
+  const importPhoneContacts = () => {
+    const demoImport: UserContact[] = [
+      {
+        id: `imported_carlos_${Date.now()}`,
+        name: 'Carlos Navarro',
+        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80',
+        phone: '+34 690 112 233',
+        email: 'carlos.navarro@gmail.com',
+        circle: 'amigos',
+        status: 'disponible',
+        statusMessage: '¡Libre para tomar unas cañas o cenar!',
+        city: 'Madrid',
+        neighborhood: 'Malasaña',
+        favoritePillar: 'comer',
+        favoriteSpot: 'Sala de Despiece',
+        hobbies: ['Gastronomía', 'Cine', 'Fotografía'],
+        isCloseFriend: true,
+        connectedSince: 'Importado de tu agenda'
+      },
+      {
+        id: `imported_elena_${Date.now()}`,
+        name: 'Elena Vega',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+        phone: '+34 691 223 344',
+        email: 'elena.vega@gmail.com',
+        circle: 'aficiones',
+        status: 'disponible',
+        statusMessage: 'Ganas de café de especialidad y libros',
+        city: 'Madrid',
+        neighborhood: 'Barrio de las Letras',
+        favoritePillar: 'cafe',
+        favoriteSpot: 'El Imparcial',
+        hobbies: ['Literatura', 'Arte', 'Café'],
+        isCloseFriend: false,
+        connectedSince: 'Importado de tu agenda'
+      },
+      {
+        id: `imported_bea_${Date.now()}`,
+        name: 'Bea Llopis',
+        avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
+        phone: '+34 692 334 455',
+        email: 'bea.llopis@gmail.com',
+        circle: 'trabajo',
+        status: 'libre_fin_de_semana',
+        statusMessage: 'Planes al aire libre para el domingo',
+        city: 'Madrid',
+        neighborhood: 'Chamberí',
+        favoritePillar: 'actividad',
+        favoriteSpot: 'El Retiro',
+        hobbies: ['Deporte', 'Música', 'Senderismo'],
+        isCloseFriend: false,
+        connectedSince: 'Importado de tu agenda'
+      }
+    ];
+
+    setContacts(prev => {
+      const existingNames = new Set(prev.map(c => c.name.toLowerCase()));
+      const toAdd = demoImport.filter(c => !existingNames.has(c.name.toLowerCase()));
+      return [...toAdd, ...prev];
+    });
+
+    confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+    showNotification('¡Se han sincronizado 3 contactos de tu agenda!');
+  };
+
+  const createSocialPost = (
+    content: string,
+    planCategory?: PlanCategory,
+    planTitle?: string,
+    spotName?: string,
+    dateTime?: string,
+    isGroup?: boolean
+  ) => {
+    const newPost: SocialPost = {
+      id: `post_${Date.now()}`,
+      authorId: 'me',
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      authorCircle: 'amigos',
+      createdAt: 'Ahora',
+      content,
+      likes: 1,
+      hasLiked: true,
+      comments: [],
+      ...(planCategory && planTitle && spotName
+        ? {
+            planCategory,
+            planDetails: {
+              title: planTitle,
+              spot: spotName,
+              datetime: dateTime || 'Próximamente',
+              isGroup: Boolean(isGroup),
+              attendees: [
+                {
+                  id: 'me',
+                  name: currentUser.name,
+                  avatar: currentUser.avatar
+                }
+              ]
+            }
+          }
+        : {})
+    };
+    setSocialPosts(prev => [newPost, ...prev]);
+    showNotification('¡Publicación compartida en tu red social!');
+  };
+
+  const likeSocialPost = (postId: string) => {
+    setSocialPosts(prev =>
+      prev.map(p => {
+        if (p.id === postId) {
+          const hasLiked = !p.hasLiked;
+          return {
+            ...p,
+            hasLiked,
+            likes: hasLiked ? p.likes + 1 : Math.max(0, p.likes - 1)
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const addPostComment = (postId: string, text: string) => {
+    if (!text.trim()) return;
+    const newComment = {
+      id: `cmt_${Date.now()}`,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
+      text: text.trim(),
+      time: 'Ahora'
+    };
+    setSocialPosts(prev =>
+      prev.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            comments: [...p.comments, newComment]
+          };
+        }
+        return p;
+      })
+    );
+    showNotification('Comentario publicado');
+  };
+
+  const joinPostPlan = (postId: string) => {
+    const post = socialPosts.find(p => p.id === postId);
+    if (!post || !post.planDetails) return;
+
+    if (post.planDetails.attendees.some(a => a.id === 'me')) {
+      showNotification('Ya estás apuntado a este plan');
+      return;
+    }
+
+    const updatedAttendees = [
+      ...post.planDetails.attendees,
+      { id: 'me', name: currentUser.name, avatar: currentUser.avatar }
+    ];
+
+    setSocialPosts(prev =>
+      prev.map(p => {
+        if (p.id === postId && p.planDetails) {
+          return {
+            ...p,
+            planDetails: {
+              ...p.planDetails,
+              attendees: updatedAttendees
+            }
+          };
+        }
+        return p;
+      })
+    );
+
+    const planDetails = post.planDetails;
+
+    const newDate: DateInvitation = {
+      id: `date_post_${postId}_${Date.now()}`,
+      fromUserId: post.authorId,
+      toUserId: 'me',
+      recipientName: post.authorName,
+      recipientAvatar: post.authorAvatar,
+      category: post.planCategory || 'cafe',
+      title: planDetails.title,
+      spotName: planDetails.spot,
+      dateTime: planDetails.datetime,
+      note: 'Plan unido desde el muro de tu red social',
+      status: 'accepted',
+      createdAt: 'Ahora',
+      isGroupDate: planDetails.isGroup,
+      currentParticipants: updatedAttendees
+    };
+
+    setConversations(prev => {
+      const convId = planDetails.isGroup ? `conv_group_post_${postId}` : `conv_${post.authorId}`;
+      const existing = prev.find(c => c.id === convId);
+
+      if (existing) {
+        return prev.map(c => {
+          if (c.id === convId) {
+            return {
+              ...c,
+              activeDate: newDate,
+              lastMessage: `¡${currentUser.name} se ha unido al plan!`,
+              lastMessageTime: 'Ahora',
+              messages: [
+                ...c.messages,
+                {
+                  id: `m_${Date.now()}`,
+                  senderId: 'me',
+                  text: `¡Hola! Me he apuntado a tu plan: ${planDetails.title}. ¡Nos vemos allí!`,
+                  timestamp: 'Ahora'
+                }
+              ]
+            };
+          }
+          return c;
+        });
+      } else {
+        const newConv: Conversation = {
+          id: convId,
+          participant: {
+            id: post.authorId,
+            name: post.authorName,
+            age: 28,
+            city: 'Madrid',
+            neighborhood: 'Centro',
+            occupation: 'Contacto de tu red',
+            bio: 'Contacto conectado en tu red de Quedamos.',
+            avatar: post.authorAvatar,
+            photos: [post.authorAvatar],
+            distanceKm: 2,
+            matchPercentage: 95,
+            coffeeStyle: 'Café de especialidad',
+            foodCuisine: 'Tapas de autor',
+            activityPick: 'Planes al aire libre',
+            plans: {
+              cafe: { title: 'Café', spot: 'Centro', preference: 'Cortado', note: '' },
+              comer: { title: 'Comer', spot: 'Taberna', preference: 'Tapas', note: '' },
+              actividad: { title: 'Ocio', spot: 'Madrid', preference: 'Paseo', note: '' }
+            },
+            interests: ['Planes', 'Amigos'],
+            vibeKeywords: ['Cercano', 'Divertido']
+          },
+          lastMessage: `¡Te has apuntado al plan de ${post.authorName}!`,
+          lastMessageTime: 'Ahora',
+          unreadCount: 0,
+          activeDate: newDate,
+          isGroupChat: planDetails.isGroup,
+          groupTitle: planDetails.title,
+          groupParticipants: updatedAttendees,
+          messages: [
+            {
+              id: `m_${Date.now()}`,
+              senderId: 'me',
+              text: `¡Hola! Me he apuntado a tu plan: ${planDetails.title}. ¡Qué ganas de vernos!`,
+              timestamp: 'Ahora'
+            }
+          ]
+        };
+        return [newConv, ...prev];
+      }
+    });
+
+    confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+    showNotification(`¡Te has unido al plan de ${post.authorName}! Añadido a tus Citas.`);
+  };
+
+  const createSocialCircle = (name: string, description: string, category: PlanCategory | 'mixto', memberIds: string[]) => {
+    const newCircle: SocialCircle = {
+      id: `circle_${Date.now()}`,
+      name,
+      description,
+      category,
+      memberCount: memberIds.length,
+      memberIds
+    };
+    setCircles(prev => [newCircle, ...prev]);
+    showNotification(`¡Círculo "${name}" creado con éxito!`);
+  };
+
+  const handleCreateContactPlan = (data: {
+    targetContactIds: string[];
+    category: PlanCategory;
+    title: string;
+    spotName: string;
+    dateTime: string;
+    note: string;
+    isGroup: boolean;
+    splitOption: string;
+  }) => {
+    const targetContacts = contacts.filter(c => data.targetContactIds.includes(c.id));
+    if (targetContacts.length === 0) {
+      showNotification('Por favor, selecciona al menos un contacto.');
+      return;
+    }
+
+    const isGroupPlan = data.isGroup || targetContacts.length > 1;
+
+    const attendeesList = [
+      { id: 'me', name: currentUser.name, avatar: currentUser.avatar },
+      ...targetContacts.map(c => ({ id: c.id, name: c.name, avatar: c.avatar }))
+    ];
+
+    const newDateInvitation: DateInvitation = {
+      id: `date_contact_${Date.now()}`,
+      fromUserId: 'me',
+      toUserId: targetContacts[0].id,
+      recipientName: isGroupPlan ? `Grupo: ${data.title}` : targetContacts[0].name,
+      recipientAvatar: targetContacts[0].avatar,
+      category: data.category,
+      title: data.title,
+      spotName: data.spotName,
+      dateTime: data.dateTime,
+      note: data.note,
+      status: 'accepted',
+      createdAt: 'Ahora',
+      isGroupDate: isGroupPlan,
+      maxParticipants: isGroupPlan ? attendeesList.length + 2 : 2,
+      currentParticipants: attendeesList
+    };
+
+    // Create or update conversation
+    setConversations(prev => {
+      const convId = isGroupPlan ? `conv_group_${Date.now()}` : `conv_contact_${targetContacts[0].id}`;
+
+      if (isGroupPlan) {
+        const groupConv: Conversation = {
+          id: convId,
+          participant: {
+            id: `group_user_${Date.now()}`,
+            name: data.title,
+            age: 0,
+            city: 'Madrid',
+            neighborhood: 'Tu Red Social',
+            occupation: 'Plan en Grupo',
+            bio: data.note,
+            avatar: targetContacts[0].avatar,
+            photos: [targetContacts[0].avatar],
+            distanceKm: 0,
+            matchPercentage: 100,
+            coffeeStyle: '',
+            foodCuisine: '',
+            activityPick: '',
+            plans: {
+              cafe: { title: data.title, spot: data.spotName, preference: '', note: '' },
+              comer: { title: data.title, spot: data.spotName, preference: '', note: '' },
+              actividad: { title: data.title, spot: data.spotName, preference: '', note: '' }
+            },
+            interests: ['Grupo', 'Contactos'],
+            vibeKeywords: ['Amigos', 'Plan']
+          },
+          lastMessage: `${currentUser.name}: He organizado "${data.title}" en ${data.spotName}`,
+          lastMessageTime: 'Ahora',
+          unreadCount: 0,
+          activeDate: newDateInvitation,
+          isGroupChat: true,
+          groupTitle: data.title,
+          groupParticipants: attendeesList,
+          messages: [
+            {
+              id: `msg_init_${Date.now()}`,
+              senderId: 'me',
+              senderName: currentUser.name,
+              senderAvatar: currentUser.avatar,
+              text: `¡Hola a todos! He creado el plan "${data.title}" en ${data.spotName} para el ${data.dateTime}. Cuenta: ${data.splitOption}. ${data.note ? `Nota: "${data.note}"` : ''}`,
+              timestamp: 'Ahora',
+              dateProposal: newDateInvitation
+            }
+          ]
+        };
+
+        // Simulate reply from first contact
+        setTimeout(() => {
+          setConversations(current =>
+            current.map(c => {
+              if (c.id === convId) {
+                const responder = targetContacts[0];
+                const replyText = `¡Contad conmigo! Me parece un planazo quedar en ${data.spotName}.`;
+                return {
+                  ...c,
+                  lastMessage: `${responder.name}: ${replyText}`,
+                  lastMessageTime: 'Ahora',
+                  messages: [
+                    ...c.messages,
+                    {
+                      id: `msg_rep_${Date.now()}`,
+                      senderId: responder.id,
+                      senderName: responder.name,
+                      senderAvatar: responder.avatar,
+                      text: replyText,
+                      timestamp: 'Ahora'
+                    }
+                  ]
+                };
+              }
+              return c;
+            })
+          );
+        }, 1400);
+
+        return [groupConv, ...prev];
+      } else {
+        const contact = targetContacts[0];
+        const existingConv = prev.find(c => c.id === convId || c.participant.id === contact.id);
+
+        if (existingConv) {
+          return prev.map(c => {
+            if (c.id === existingConv.id) {
+              return {
+                ...c,
+                activeDate: newDateInvitation,
+                lastMessage: `Propuesta de cita: ${data.title}`,
+                lastMessageTime: 'Ahora',
+                messages: [
+                  ...c.messages,
+                  {
+                    id: `msg_${Date.now()}`,
+                    senderId: 'me',
+                    text: `¡Hola ${contact.name}! ¿Te apetece quedar para "${data.title}" en ${data.spotName}? (${data.dateTime})`,
+                    timestamp: 'Ahora',
+                    dateProposal: newDateInvitation
+                  }
+                ]
+              };
+            }
+            return c;
+          });
+        } else {
+          const newConv: Conversation = {
+            id: convId,
+            participant: {
+              id: contact.id,
+              name: contact.name,
+              age: 28,
+              city: contact.city,
+              neighborhood: contact.neighborhood || 'Madrid',
+              occupation: 'Contacto de tu red',
+              bio: contact.statusMessage || 'Contacto de tu red.',
+              avatar: contact.avatar,
+              photos: [contact.avatar],
+              distanceKm: 2.1,
+              matchPercentage: 97,
+              coffeeStyle: contact.favoriteSpot || 'Café especialidad',
+              foodCuisine: 'Tapas mediterráneas',
+              activityPick: contact.hobbies?.[0] || 'Planes juntos',
+              plans: {
+                cafe: { title: data.title, spot: data.spotName, preference: '', note: '' },
+                comer: { title: data.title, spot: data.spotName, preference: '', note: '' },
+                actividad: { title: data.title, spot: data.spotName, preference: '', note: '' }
+              },
+              interests: contact.hobbies || ['Amigos', 'Planes'],
+              vibeKeywords: ['Conocido', 'Cercano']
+            },
+            lastMessage: `Cita acordada: ${data.title}`,
+            lastMessageTime: 'Ahora',
+            unreadCount: 0,
+            activeDate: newDateInvitation,
+            messages: [
+              {
+                id: `msg_${Date.now()}`,
+                senderId: 'me',
+                text: `¡Hola ${contact.name}! He organizado para los dos "${data.title}" en ${data.spotName} el ${data.dateTime}. ¡Nos vemos allí!`,
+                timestamp: 'Ahora',
+                dateProposal: newDateInvitation
+              }
+            ]
+          };
+
+          // Simulate automatic enthusiastic response
+          setTimeout(() => {
+            setConversations(curr =>
+              curr.map(c => {
+                if (c.id === convId) {
+                  return {
+                    ...c,
+                    lastMessage: `¡Qué gran idea! Allí nos vemos a las ${data.dateTime}.`,
+                    lastMessageTime: 'Ahora',
+                    messages: [
+                      ...c.messages,
+                      {
+                        id: `rep_${Date.now()}`,
+                        senderId: contact.id,
+                        text: `¡Hola ${currentUser.name}! ¡Qué buen plan! Me apetece mucho ir a ${data.spotName}. Cuenta conmigo el ${data.dateTime} ☕✨`,
+                        timestamp: 'Ahora'
+                      }
+                    ]
+                  };
+                }
+                return c;
+              })
+            );
+          }, 1200);
+
+          return [newConv, ...prev];
+        }
+      }
+    });
+
+    // Also share on the social feed
+    createSocialPost(
+      isGroupPlan
+        ? `¡He organizado una quedada en grupo "${data.title}" con mis contactos en ${data.spotName}!`
+        : `¡Quedada para 2 organizada con ${targetContacts[0].name} para "${data.title}" en ${data.spotName}!`,
+      data.category,
+      data.title,
+      data.spotName,
+      data.dateTime,
+      isGroupPlan
+    );
+
+    confetti({ particleCount: 110, spread: 80, origin: { y: 0.6 } });
+    showNotification(
+      isGroupPlan
+        ? `¡Plan grupal "${data.title}" creado con ${targetContacts.length} contactos!`
+        : `¡Plan para 2 confirmado con ${targetContacts[0].name}!`
+    );
+
+    closeContactPlanModal();
+  };
+
   // Compile all dates across conversations
   const allDates: DateInvitation[] = conversations
     .map(c => c.activeDate)
@@ -913,6 +1549,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendDateInvitation,
         respondToDateInvitation,
         allDates,
+        // Social Network & Contacts
+        contacts,
+        addContact,
+        importPhoneContacts,
+        socialPosts,
+        createSocialPost,
+        likeSocialPost,
+        addPostComment,
+        joinPostPlan,
+        circles,
+        createSocialCircle,
+        isContactPlanModalOpen,
+        contactPlanTarget,
+        isContactPlanGroupMode,
+        openContactPlanModal,
+        closeContactPlanModal,
+        handleCreateContactPlan,
+        isAddContactModalOpen,
+        setIsAddContactModalOpen,
+        // Modals state
         proposalModalTarget,
         openProposalModal,
         closeProposalModal,
